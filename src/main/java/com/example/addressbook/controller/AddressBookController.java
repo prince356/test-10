@@ -1,6 +1,6 @@
-package com.example.addressbook.controller;
+package com.addressbook.controller;
 
-import com.example.addressbook.model.AddressBook;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,42 +11,45 @@ import java.util.List;
 @RequestMapping("/api/addressbook")
 public class AddressBookController {
 
-    private List<AddressBook> addressBookList = new ArrayList<>();
+    private final List<String> addressBookList = new ArrayList<>();
 
     @GetMapping
-    public ResponseEntity<List<AddressBook>> getAllContacts() {
+    public ResponseEntity<List<String>> getAllContacts() {
         return ResponseEntity.ok(addressBookList);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AddressBook> getContactById(@PathVariable int id) {
-        return addressBookList.stream()
-                .filter(contact -> contact.getId() == id)
-                .findFirst()
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<String> getContactById(@PathVariable int id) {
+        if (id >= 0 && id < addressBookList.size()) {
+            return ResponseEntity.ok(addressBookList.get(id));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Entry not found");
+        }
     }
 
     @PostMapping
-    public ResponseEntity<AddressBook> addContact(@RequestBody AddressBook contact) {
-        addressBookList.add(contact);
-        return ResponseEntity.ok(contact);
+    public ResponseEntity<String> addContact(@RequestParam String name) {
+        addressBookList.add(name);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Entry added successfully");
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AddressBook> updateContact(@PathVariable int id, @RequestBody AddressBook updatedContact) {
-        for (int i = 0; i < addressBookList.size(); i++) {
-            if (addressBookList.get(i).getId() == id) {
-                addressBookList.set(i, updatedContact);
-                return ResponseEntity.ok(updatedContact);
-            }
+    public ResponseEntity<String> updateContact(@PathVariable int id, @RequestParam String name) {
+        if (id >= 0 && id < addressBookList.size()) {
+            addressBookList.set(id, name);
+            return ResponseEntity.ok("Entry updated successfully");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Entry not found");
         }
-        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteContact(@PathVariable int id) {
-        addressBookList.removeIf(contact -> contact.getId() == id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<String> deleteContact(@PathVariable int id) {
+        if (id >= 0 && id < addressBookList.size()) {
+            addressBookList.remove(id);
+            return ResponseEntity.ok("Entry deleted successfully");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Entry not found");
+        }
     }
 }
