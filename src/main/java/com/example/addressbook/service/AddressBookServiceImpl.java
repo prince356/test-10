@@ -7,12 +7,13 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class AddressBookServiceImpl implements AddressBookService {
 
     private final List<AddressBook> addressBookList = new ArrayList<>();
-    private int idCounter = 1;  // Auto-increment ID simulation
+    private final AtomicInteger idCounter = new AtomicInteger(1);  // Thread-safe ID generator
 
     @Override
     public List<AddressBook> getAllContacts() {
@@ -29,7 +30,12 @@ public class AddressBookServiceImpl implements AddressBookService {
 
     @Override
     public AddressBook addContact(AddressBookDTO contactDTO) {
-        AddressBook newContact = new AddressBook(idCounter++, contactDTO.getName(), contactDTO.getPhoneNumber(), contactDTO.getEmail());
+        AddressBook newContact = new AddressBook(
+                idCounter.getAndIncrement(),
+                contactDTO.getName(),
+                contactDTO.getPhoneNumber(),
+                contactDTO.getEmail()
+        );
         addressBookList.add(newContact);
         return newContact;
     }
