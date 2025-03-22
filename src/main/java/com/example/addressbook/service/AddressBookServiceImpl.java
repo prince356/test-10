@@ -2,60 +2,50 @@ package com.example.addressbook.service;
 
 import com.example.addressbook.dto.AddressBookDTO;
 import com.example.addressbook.model.AddressBook;
+import com.example.addressbook.repository.AddressBookRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class AddressBookServiceImpl implements AddressBookService {
 
-    private final List<AddressBook> addressBookList = new ArrayList<>();
-    private final AtomicInteger idCounter = new AtomicInteger(1);  // Thread-safe ID generator
+    private final AddressBookRepository addressBookRepository;
+
+    public AddressBookServiceImpl(AddressBookRepository addressBookRepository) {
+        this.addressBookRepository = addressBookRepository;
+    }
 
     @Override
     public List<AddressBook> getAllContacts() {
-        return addressBookList;
+        return addressBookRepository.findAll();
     }
 
     @Override
     public AddressBook getContactById(int id) {
-        return addressBookList.stream()
-                .filter(contact -> contact.getId() == id)
-                .findFirst()
-                .orElse(null);
+        return addressBookRepository.findById(id).orElse(null);
     }
 
     @Override
     public AddressBook addContact(AddressBookDTO contactDTO) {
-        AddressBook newContact = new AddressBook(
-                idCounter.getAndIncrement(),
-                contactDTO.getName(),
-                contactDTO.getPhoneNumber(),
-                contactDTO.getEmail()
-        );
-        addressBookList.add(newContact);
-        return newContact;
+        AddressBook newContact = new AddressBook(0, contactDTO.getName(), contactDTO.getPhoneNumber(), contactDTO.getEmail());
+        return addressBookRepository.save(newContact);
     }
 
     @Override
     public AddressBook updateContact(int id, AddressBookDTO contactDTO) {
-        Optional<AddressBook> existingContact = addressBookList.stream()
-                .filter(contact -> contact.getId() == id)
-                .findFirst();
-
-        if (existingContact.isPresent()) {
-            AddressBook updatedContact = new AddressBook(id, contactDTO.getName(), contactDTO.getPhoneNumber(), contactDTO.getEmail());
-            addressBookList.set(addressBookList.indexOf(existingContact.get()), updatedContact);
-            return updatedContact;
-        }
-        return null;
+        return addressBookRepository.findById(id)
+                .map(existingContact -> {
+                    existingContact.setName(contactDTO.getName());
+                    existingContact.setPhoneNumber(contactDTO.getPhoneNumber());
+                    existingContact.setEmail(contactDTO.getEmail());
+                    return addressBookRepository.save(existingContact);
+                })
+                .orElse(null);
     }
 
     @Override
     public void deleteContact(int id) {
-        addressBookList.removeIf(contact -> contact.getId() == id);
+        addressBookRepository.deleteById(id);
     }
 }
