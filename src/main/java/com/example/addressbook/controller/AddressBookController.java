@@ -1,4 +1,4 @@
-package com.addressbook.controller;
+package com.example.addressbook.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
