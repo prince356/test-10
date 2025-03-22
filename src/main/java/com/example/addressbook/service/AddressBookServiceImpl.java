@@ -29,6 +29,15 @@ public class AddressBookServiceImpl implements AddressBookService {
     }
 
     @Override
+    public AddressBook addContact(AddressBookDTO contactDTO) {
+        AddressBook newContact = new AddressBook();
+        newContact.setName(contactDTO.getName());
+        newContact.setPhoneNumber(contactDTO.getPhoneNumber());
+        newContact.setEmail(contactDTO.getEmail());
+        return addressBookRepository.save(newContact);
+    }
+
+    @Override
     public AddressBook updateContact(int id, AddressBookDTO contactDTO) {
         AddressBook existingContact = addressBookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Contact with ID " + id + " not found"));
